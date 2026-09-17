@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Products\Schemas;
 
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\TextInput;
@@ -30,6 +31,12 @@ class ProductForm
                                 fn (Set $set, ?string $state) =>
                                     $set('slug', Str::slug($state ?? ''))
                             ),
+
+			Select::make('category_id')
+    			->label('Kategoria')
+    			->relationship('category', 'name')
+    			->searchable()
+    			->preload(),
 
                         TextInput::make('slug')
                             ->label('Adres URL')

@@ -36,9 +36,24 @@
                 Sklep
             </a>
 
-            <span class="cart-placeholder">
-                Koszyk
-            </span>
+            <a
+               href="{{ route('cart.index') }}"
+               class="cart-placeholder">
+ 
+              Koszyk
+
+           @php
+          $cartCount = collect(
+                 session('cart', [])
+                )->sum('quantity');
+              @endphp
+
+                 @if($cartCount > 0)
+                   ({{ $cartCount }})
+                 @endif
+
+             </a>
+            
         </nav>
 
     </div>

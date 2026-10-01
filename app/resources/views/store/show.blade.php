@@ -158,15 +158,45 @@
                 </div>
 
 
-                <button
-                    type="button"
-                    id="add-to-cart"
-                    class="button buy-button"
-                    disabled>
+               <form
+                 method="POST"
+                 action="{{ route('cart.add') }}"
+                 class="add-cart-form">
 
-                    Dodaj do koszyka
+                @csrf
 
-                </button>
+                 <input
+                    type="hidden"
+                    name="variant_id"
+                    id="selected-variant">
+
+                  <div class="quantity-row">
+
+                  <label for="quantity">
+                         Ilość
+                  </label>
+
+                <input
+                   type="number"
+                   id="quantity"
+                   name="quantity"
+                   value="1"
+                   min="1"
+                   max="99">
+
+            </div>
+
+            <button
+                  type="submit"
+                  id="add-to-cart"
+                  class="button buy-button"
+                  disabled>
+
+                  Dodaj do koszyka
+
+              </button>
+
+           </form>
 
             @else
 
@@ -218,7 +248,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const cartButton =
         document.getElementById('add-to-cart');
-
+    
+    const variantInput =
+        document.getElementById('selected-variant');
 
     variants.forEach(button => {
 
@@ -266,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             cartButton.disabled = false;
 
-            cartButton.dataset.variant =
+            variantInput.value =
                 button.dataset.variant;
 
         });

@@ -54,6 +54,6 @@ Route::post('/zamowienie', [CheckoutController::class, 'store'])
     ->name('checkout.store');
 
 Route::get(
-    '/zamowienie/{order}/potwierdzenie',
+    '/zamowienie/{order:number}/potwierdzenie',
     [CheckoutController::class, 'success']
 )->name('checkout.success');

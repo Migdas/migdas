@@ -55,14 +55,14 @@
                 <input
                     type="text"
                     name="search"
-                    value="{{ request('search') }}"
+                    value="{{ $search }}"
                     placeholder="Szukaj produktu...">
 
-                @if(request('category'))
+                @if($category !== '')
                     <input
                         type="hidden"
                         name="category"
-                        value="{{ request('category') }}">
+                        value="{{ $category }}">
                 @endif
 
                 <button type="submit">
@@ -78,19 +78,19 @@
 
             <a
                 href="{{ route('store.products') }}"
-                class="category-pill {{ !request('category') ? 'active' : '' }}">
+                class="category-pill {{ $category === '' ? 'active' : '' }}">
 
                 Wszystkie
 
             </a>
 
-            @foreach($categories as $category)
+            @foreach($categories as $categoryItem)
 
                 <a
-                    href="{{ route('store.products', ['category' => $category->slug]) }}"
-                    class="category-pill {{ request('category') === $category->slug ? 'active' : '' }}">
+                    href="{{ route('store.products', ['category' => $categoryItem->slug]) }}"
+                    class="category-pill {{ $category === $categoryItem->slug ? 'active' : '' }}">
 
-                    {{ $category->name }}
+                    {{ $categoryItem->name }}
 
                 </a>
 

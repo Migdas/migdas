@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\DB;
 
 class CheckoutController extends Controller
 {
+    public const SHIPPING_COSTS = [
+        'courier' => 16.99,
+        'pickup' => 0.00,
+    ];
+
     private function cartItems()
     {
         $cart = session()->get('cart', []);
@@ -17,9 +22,15 @@ class CheckoutController extends Controller
             return collect();
         }
 
+        // Tylko warianty, które nadal są w sprzedaży.
         $variants = ProductVariant::query()
             ->with(['product', 'material', 'color'])
             ->whereIn('id', array_keys($cart))
+            ->where('is_active', true)
+            ->whereHas(
+                'product',
+                fn ($query) => $query->where('is_active', true)
+            )
             ->get();
 
         return $variants->map(function ($variant) use ($cart) {
@@ -55,6 +66,7 @@ class CheckoutController extends Controller
         return view('checkout.index', [
             'items' => $items,
             'productsTotal' => $productsTotal,
+            'shippingCosts' => self::SHIPPING_COSTS,
         ]);
     }
 
@@ -67,16 +79,33 @@ class CheckoutController extends Controller
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['required', 'string', 'max:30'],
 
-            'street' => ['required', 'string', 'max:255'],
-            'building_number' => ['required', 'string', 'max:30'],
+            // Adres jest wymagany tylko przy dostawie kurierem.
+            'street' => [
+                'required_if:shipping_method,courier',
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'building_number' => [
+                'required_if:shipping_method,courier',
+                'nullable',
+                'string',
+                'max:30',
+            ],
             'apartment_number' => ['nullable', 'string', 'max:30'],
 
             'postal_code' => [
-                'required',
+                'required_if:shipping_method,courier',
+                'nullable',
                 'regex:/^\d{2}-\d{3}$/',
             ],
 
-            'city' => ['required', 'string', 'max:150'],
+            'city' => [
+                'required_if:shipping_method,courier',
+                'nullable',
+                'string',
+                'max:150',
+            ],
 
             'shipping_method' => [
                 'required',
@@ -98,12 +127,28 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index');
         }
 
+        // Coś z koszyka zostało w międzyczasie wycofane ze sprzedaży.
+        if ($items->count() !== count(session()->get('cart', []))) {
+            return redirect()
+                ->route('cart.index')
+                ->with(
+                    'error',
+                    'Część produktów z koszyka nie jest już dostępna. Sprawdź koszyk i złóż zamówienie ponownie.'
+                );
+        }
+
         $productsTotal = (float) $items->sum('total');
 
-        $shippingCost = match ($validated['shipping_method']) {
-            'courier' => 16.99,
-            'pickup' => 0.00,
-        };
+        $shippingCost = self::SHIPPING_COSTS[$validated['shipping_method']];
+
+        // Kolumny adresu w tabeli orders nie przyjmują NULL.
+        if ($validated['shipping_method'] === 'pickup') {
+            $validated['street'] = '';
+            $validated['building_number'] = '';
+            $validated['apartment_number'] = null;
+            $validated['postal_code'] = '';
+            $validated['city'] = '';
+        }
 
         $order = DB::transaction(function () use (
             $validated,
@@ -178,6 +223,7 @@ class CheckoutController extends Controller
         });
 
         session()->forget('cart');
+        session()->push('placed_orders', $order->id);
 
         return redirect()
             ->route('checkout.success', $order);
@@ -185,6 +231,12 @@ class CheckoutController extends Controller
 
     public function success(Order $order)
     {
+        // Potwierdzenie widzi tylko ten, kto złożył zamówienie w tej sesji.
+        abort_unless(
+            in_array($order->id, session()->get('placed_orders', []), true),
+            404
+        );
+
         return view('checkout.success', compact('order'));
     }
 

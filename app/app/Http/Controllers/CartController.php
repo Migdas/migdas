@@ -25,7 +25,18 @@ class CartController extends Controller
                 'color',
             ])
             ->whereIn('id', array_keys($cart))
+            ->where('is_active', true)
+            ->whereHas(
+                'product',
+                fn ($query) => $query->where('is_active', true)
+            )
             ->get();
+
+        // Usuwamy z koszyka pozycje wycofane ze sprzedaży.
+        session()->put(
+            'cart',
+            array_intersect_key($cart, $variants->keyBy('id')->all())
+        );
 
         $items = $variants->map(function ($variant) use ($cart) {
 

@@ -18,6 +18,14 @@
 
     @endif
 
+    @if(session('error'))
+
+        <div class="checkout-errors">
+            {{ session('error') }}
+        </div>
+
+    @endif
+
     @if($items->isEmpty())
 
         <div class="empty-state">

@@ -82,7 +82,9 @@
             </section>
 
 
-            <section class="checkout-box">
+            <section
+                id="shipping-address"
+                class="checkout-box">
 
                 <h2>Adres dostawy</h2>
 
@@ -94,6 +96,7 @@
                         <input
                             name="street"
                             value="{{ old('street') }}"
+                            data-address-required
                             required>
                     </label>
 
@@ -103,6 +106,7 @@
                         <input
                             name="building_number"
                             value="{{ old('building_number') }}"
+                            data-address-required
                             required>
                     </label>
 
@@ -121,6 +125,7 @@
                             name="postal_code"
                             placeholder="00-000"
                             value="{{ old('postal_code') }}"
+                            data-address-required
                             required>
                     </label>
 
@@ -130,6 +135,7 @@
                         <input
                             name="city"
                             value="{{ old('city') }}"
+                            data-address-required
                             required>
                     </label>
 
@@ -148,11 +154,12 @@
                         type="radio"
                         name="shipping_method"
                         value="courier"
-                        checked>
+                        data-cost="{{ $shippingCosts['courier'] }}"
+                        @checked(old('shipping_method', 'courier') === 'courier')>
 
                     <span>
                         <strong>Kurier</strong>
-                        <small>16,99 zł</small>
+                        <small>{{ number_format($shippingCosts['courier'], 2, ',', ' ') }} zł</small>
                     </span>
 
                 </label>
@@ -162,11 +169,13 @@
                     <input
                         type="radio"
                         name="shipping_method"
-                        value="pickup">
+                        value="pickup"
+                        data-cost="{{ $shippingCosts['pickup'] }}"
+                        @checked(old('shipping_method') === 'pickup')>
 
                     <span>
                         <strong>Odbiór osobisty</strong>
-                        <small>0,00 zł</small>
+                        <small>{{ number_format($shippingCosts['pickup'], 2, ',', ' ') }} zł</small>
                     </span>
 
                 </label>
@@ -257,10 +266,33 @@
 
             </div>
 
-            <p class="shipping-info">
-                Koszt dostawy zostanie doliczony
-                zgodnie z wybraną metodą.
-            </p>
+            @php
+                $selectedShippingCost = $shippingCosts[
+                    old('shipping_method') === 'pickup' ? 'pickup' : 'courier'
+                ];
+            @endphp
+
+            <div class="summary-row">
+
+                <span>Dostawa</span>
+
+                <strong id="shipping-cost">
+                    {{ number_format($selectedShippingCost, 2, ',', ' ') }} zł
+                </strong>
+
+            </div>
+
+            <div class="summary-total">
+
+                <span>Razem</span>
+
+                <strong
+                    id="order-total"
+                    data-products-total="{{ $productsTotal }}">
+                    {{ number_format($productsTotal + $selectedShippingCost, 2, ',', ' ') }} zł
+                </strong>
+
+            </div>
 
             <button
                 type="submit"
@@ -279,3 +311,73 @@
 </section>
 
 @endsection
+
+
+@push('scripts')
+
+<script>
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    const methods =
+        document.querySelectorAll('input[name="shipping_method"]');
+
+    const address =
+        document.getElementById('shipping-address');
+
+    const shippingCost =
+        document.getElementById('shipping-cost');
+
+    const orderTotal =
+        document.getElementById('order-total');
+
+    const format = value =>
+        value.toLocaleString(
+            'pl-PL',
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        ) + ' zł';
+
+    const refresh = () => {
+
+        const selected =
+            document.querySelector('input[name="shipping_method"]:checked');
+
+        if (!selected) {
+            return;
+        }
+
+        const cost =
+            parseFloat(selected.dataset.cost);
+
+        const isPickup =
+            selected.value === 'pickup';
+
+        shippingCost.textContent =
+            format(cost);
+
+        orderTotal.textContent =
+            format(parseFloat(orderTotal.dataset.productsTotal) + cost);
+
+        // Przy odbiorze osobistym adres nie jest potrzebny.
+        address.hidden = isPickup;
+
+        address
+            .querySelectorAll('[data-address-required]')
+            .forEach(input => input.required = !isPickup);
+
+    };
+
+    methods.forEach(method =>
+        method.addEventListener('change', refresh)
+    );
+
+    refresh();
+
+});
+
+</script>
+
+@endpush

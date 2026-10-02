@@ -48,7 +48,7 @@
             @if($product->category)
 
                 <span class="eyebrow">
-                    {{ strtoupper($product->category->name) }}
+                    {{ mb_strtoupper($product->category->name) }}
                 </span>
 
             @endif

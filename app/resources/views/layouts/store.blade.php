@@ -14,7 +14,7 @@
           content="@yield('description', 'Migdas - produkty tworzone w technologii druku 3D.')">
 
     <link rel="stylesheet"
-          href="{{ asset('css/store.css') }}">
+          href="{{ asset('css/store.css') }}?v={{ filemtime(public_path('css/store.css')) }}">
 </head>
 
 <body>

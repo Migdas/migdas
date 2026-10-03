@@ -256,6 +256,8 @@ class CheckoutController extends Controller
             404
         );
 
+        $order->load('items');
+
         return view('checkout.success', compact('order'));
     }
 

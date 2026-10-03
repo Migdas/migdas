@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\NewOrderNotification;
+use App\Mail\OrderPlaced;
 use App\Models\Order;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 class CheckoutController extends Controller
 {
@@ -238,6 +242,8 @@ class CheckoutController extends Controller
         session()->forget('cart');
         session()->push('placed_orders', $order->id);
 
+        $this->sendOrderEmails($order);
+
         return redirect()
             ->route('checkout.success', $order);
     }
@@ -251,6 +257,28 @@ class CheckoutController extends Controller
         );
 
         return view('checkout.success', compact('order'));
+    }
+
+    private function sendOrderEmails(Order $order): void
+    {
+        $order->load('items');
+
+        // Zamówienie jest już zapisane - problem z pocztą nie może
+        // zakończyć się błędem dla klienta, więc tylko go logujemy.
+        try {
+            Mail::to($order->email)->send(new OrderPlaced($order));
+        } catch (Throwable $e) {
+            report($e);
+        }
+
+        if (filled(config('shop.notification_email'))) {
+            try {
+                Mail::to(config('shop.notification_email'))
+                    ->send(new NewOrderNotification($order));
+            } catch (Throwable $e) {
+                report($e);
+            }
+        }
     }
 
     private function generateOrderNumber(): string

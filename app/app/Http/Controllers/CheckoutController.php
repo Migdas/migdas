@@ -217,6 +217,19 @@ class CheckoutController extends Controller
                     'total' =>
                         $item['total'],
                 ]);
+
+                // Zdejmujemy sztuki ze stanu. Stan nie schodzi poniżej zera -
+                // nadwyżka jest realizowana jako druk na zamówienie.
+                $quantity = (int) $item['quantity'];
+
+                ProductVariant::query()
+                    ->whereKey($variant->id)
+                    ->update([
+                        'stock_quantity' => DB::raw(
+                            "CASE WHEN stock_quantity > {$quantity} " .
+                            "THEN stock_quantity - {$quantity} ELSE 0 END"
+                        ),
+                    ]);
             }
 
             return $order;

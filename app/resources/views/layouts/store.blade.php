@@ -70,6 +70,12 @@
         <p>
             Produkty tworzone w technologii druku 3D.
         </p>
+
+        <nav class="footer-nav">
+            <a href="{{ route('store.terms') }}">
+                Regulamin sklepu
+            </a>
+        </nav>
     </div>
 </footer>
 

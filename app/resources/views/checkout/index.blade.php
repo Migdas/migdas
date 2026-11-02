@@ -164,21 +164,9 @@
 
                 </label>
 
-                <label class="shipping-option">
-
-                    <input
-                        type="radio"
-                        name="shipping_method"
-                        value="pickup"
-                        data-cost="{{ $shippingCosts['pickup'] }}"
-                        @checked(old('shipping_method') === 'pickup')>
-
-                    <span>
-                        <strong>Odbiór osobisty</strong>
-                        <small>{{ number_format($shippingCosts['pickup'], 2, ',', ' ') }} zł</small>
-                    </span>
-
-                </label>
+                {{-- Odbiór osobisty wyłączony - brak miejsca odbioru.
+                     Aby przywrócić: dodaj tu opcję "pickup" i dopuść ją
+                     w walidacji shipping_method w CheckoutController. --}}
 
             </section>
 

@@ -70,6 +70,14 @@
         <p>
             Produkty tworzone w technologii druku 3D.
         </p>
+
+        <p class="footer-contact">
+            Sprzedawca: {{ config('shop.seller.name') }}<br>
+            E-mail:
+            <a href="mailto:{{ config('shop.seller.email') }}">{{ config('shop.seller.email') }}</a><br>
+            Telefon:
+            <a href="tel:+48{{ str_replace(' ', '', config('shop.seller.phone')) }}">{{ config('shop.seller.phone') }}</a>
+        </p>
     </div>
 </footer>
 

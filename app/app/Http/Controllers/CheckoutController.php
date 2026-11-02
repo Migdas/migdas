@@ -113,7 +113,8 @@ class CheckoutController extends Controller
 
             'shipping_method' => [
                 'required',
-                'in:courier,pickup',
+                // Odbiór osobisty jest obecnie wyłączony.
+                'in:courier',
             ],
 
             'customer_note' => [

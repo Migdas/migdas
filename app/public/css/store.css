@@ -403,6 +403,15 @@ a {
     color: #aaa;
 }
 
+.site-footer a {
+    color: #ddd;
+}
+
+.footer-contact {
+    font-size: 14px;
+    line-height: 1.7;
+}
+
 @media (max-width: 850px) {
 
     .product-grid {

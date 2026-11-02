@@ -70,12 +70,18 @@
             – w zakresie potrzebnym do doręczenia;</li>
         <li>dostawcy serwera, na którym działa Sklep;</li>
         <li>dostawcy usługi wysyłki wiadomości e-mail (Brevo);</li>
+        <li>dostawcy obsługi domeny i przekierowania poczty sklepu (Cloudflare);</li>
+        <li>dostawcy skrzynki, w której obsługujemy korespondencję i powiadomienia
+            o zamówieniach (Google, usługa Gmail);</li>
         <li>bankowi obsługującemu rachunek, na który wpłacasz należność;</li>
         <li>organom publicznym, gdy wymagają tego przepisy.</li>
     </ul>
 
     <p>
-        Nie przekazujemy danych poza Europejski Obszar Gospodarczy.
+        Cloudflare i Google mogą przetwarzać dane także poza Europejskim Obszarem
+        Gospodarczym, w tym w Stanach Zjednoczonych. Podstawą takiego przekazania
+        jest decyzja Komisji Europejskiej o odpowiednim stopniu ochrony
+        (EU-US Data Privacy Framework) lub standardowe klauzule umowne.
     </p>
 
 

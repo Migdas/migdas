@@ -32,10 +32,24 @@
 
         </div>
 
-        <p>
-            Potwierdzenie wysłaliśmy na adres
-            <strong>{{ $order->email }}</strong>.
-        </p>
+        @if($confirmationSent)
+
+            <p>
+                Potwierdzenie wysłaliśmy na adres
+                <strong>{{ $order->email }}</strong>.
+            </p>
+
+        @else
+
+            <p>
+                Nie udało się wysłać potwierdzenia na adres
+                <strong>{{ $order->email }}</strong>.
+                Zachowaj numer zamówienia i napisz do nas na
+                <a href="mailto:{{ config('shop.seller.email') }}">{{ config('shop.seller.email') }}</a>,
+                a prześlemy potwierdzenie z regulaminem.
+            </p>
+
+        @endif
 
 
         @if(config('shop.bank_account'))

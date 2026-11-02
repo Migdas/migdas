@@ -107,10 +107,6 @@
                                     ?? $product->sale_price
                                     ?? $product->price;
 
-                                $leadTime =
-                                    $variant->lead_time_days
-                                    ?? $product->lead_time_days;
-
                             @endphp
 
                             <button
@@ -118,7 +114,6 @@
                                 class="variant-card"
                                 data-price="{{ $price }}"
                                 data-stock="{{ $variant->stock_quantity }}"
-                                data-lead="{{ $leadTime }}"
                                 data-variant="{{ $variant->id }}">
 
                                 <span class="variant-material">
@@ -202,8 +197,8 @@
 
                 <div class="availability">
 
-                    Czas realizacji:
-                    około {{ $product->lead_time_days }} dni
+                    Druk na zamówienie: wysyłka w ciągu 7 dni roboczych
+                    od zaksięgowania wpłaty.
 
                 </div>
 
@@ -269,9 +264,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const stock =
                 parseInt(button.dataset.stock);
 
-            const lead =
-                parseInt(button.dataset.lead);
-
 
             price.textContent =
                 variantPrice.toLocaleString(
@@ -283,15 +275,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 ) + ' zł';
 
 
+            // Terminy wysyłki zgodne z § 5 regulaminu.
             if (stock > 0) {
 
                 availability.textContent =
-                    `Dostępne od ręki: ${stock} szt.`;
+                    `Dostępne od ręki: ${stock} szt. Wysyłka w ciągu 3 dni roboczych od zaksięgowania wpłaty.`;
 
             } else {
 
                 availability.textContent =
-                    `Druk na zamówienie — realizacja około ${lead} dni`;
+                    'Druk na zamówienie: wysyłka w ciągu 7 dni roboczych od zaksięgowania wpłaty.';
 
             }
 

@@ -104,9 +104,9 @@
 <ol>
     <li>
         Zamówienie składa się, dodając Towary do koszyka, wypełniając formularz
-        zamówienia, akceptując Regulamin i klikając przycisk „Zamawiam”.
-        Kliknięcie tego przycisku oznacza złożenie zamówienia z obowiązkiem
-        zapłaty.
+        zamówienia, akceptując Regulamin i klikając przycisk „Zamawiam z obowiązkiem
+        zapłaty”. Kliknięcie tego przycisku oznacza złożenie zamówienia
+        z obowiązkiem zapłaty.
     </li>
     <li>
         Przed złożeniem zamówienia Klient widzi podsumowanie: wybrane Towary,

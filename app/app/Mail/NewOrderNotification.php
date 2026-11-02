@@ -14,7 +14,8 @@ use Illuminate\Mail\Mailables\Envelope;
 class NewOrderNotification extends Mailable
 {
     public function __construct(
-        public Order $order
+        public Order $order,
+        public bool $customerNotified = true
     ) {
     }
 

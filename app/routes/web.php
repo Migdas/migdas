@@ -57,6 +57,7 @@ Route::get('/zamowienie', [CheckoutController::class, 'index'])
     ->name('checkout.index');
 
 Route::post('/zamowienie', [CheckoutController::class, 'store'])
+    ->middleware('throttle:orders')
     ->name('checkout.store');
 
 Route::get(

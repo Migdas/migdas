@@ -201,11 +201,16 @@
                     type="checkbox"
                     name="terms"
                     value="1"
+                    @checked(old('terms'))
                     required>
 
                 <span>
-                    Akceptuję regulamin sklepu i zasady realizacji
-                    zamówienia.
+                    Zapoznałem/-am się i akceptuję
+                    <a
+                        href="{{ route('store.terms') }}"
+                        target="_blank"
+                        rel="noopener">regulamin sklepu</a>.
+                    Wiem, że zamówienie wiąże się z obowiązkiem zapłaty.
                 </span>
 
             </label>

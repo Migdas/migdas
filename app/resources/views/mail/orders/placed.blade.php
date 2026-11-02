@@ -17,6 +17,8 @@ Prosimy o przelew na kwotę **{{ number_format($order->total, 2, ',', ' ') }} z�
 Zamówienie przekażemy do realizacji po zaksięgowaniu wpłaty.
 @endif
 
+W załączniku przesyłamy regulamin sklepu obowiązujący w dniu złożenia zamówienia, razem ze wzorem formularza odstąpienia od umowy. Jest też dostępny na stronie [{{ route('store.terms') }}]({{ route('store.terms') }}).
+
 W razie pytań po prostu odpowiedz na tę wiadomość.
 
 Pozdrawiamy,<br>

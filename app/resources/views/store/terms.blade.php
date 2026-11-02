@@ -26,7 +26,7 @@
     <h1>Regulamin sklepu internetowego Migdas</h1>
 
     <p class="legal-meta">
-        Obowiązuje od: {{ $todo('data wejścia w życie') }}
+        Obowiązuje od: 2 listopada 2026 r.
     </p>
 
 
@@ -49,7 +49,7 @@
             <ul>
                 <li>e-mail: <a href="mailto:{{ $seller['email'] }}">{{ $seller['email'] }}</a>,</li>
                 <li>telefon: <a href="tel:+48{{ preg_replace('/\D/', '', $seller['phone']) }}">{{ $seller['phone'] }}</a>
-                    {{ $todo('godziny, w których telefon jest odbierany') }},</li>
+                    (w godz. 12:00–16:00),</li>
                 <li>adres korespondencyjny: {{ $address }}.</li>
             </ul>
         </li>

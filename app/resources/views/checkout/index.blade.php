@@ -291,7 +291,7 @@
                 type="submit"
                 class="button checkout-submit">
 
-                Zamawiam
+                Zamawiam z obowiązkiem zapłaty
 
             </button>
 

@@ -259,7 +259,14 @@ class CheckoutController extends Controller
 
         $order->load('items');
 
-        return view('checkout.success', compact('order'));
+        return view('checkout.success', [
+            'order' => $order,
+            'confirmationSent' => ! in_array(
+                $order->id,
+                session()->get('orders_without_email', []),
+                true
+            ),
+        ]);
     }
 
     private function sendOrderEmails(Order $order): void
@@ -268,16 +275,22 @@ class CheckoutController extends Controller
 
         // Zamówienie jest już zapisane - problem z pocztą nie może
         // zakończyć się błędem dla klienta, więc tylko go logujemy.
+        $customerNotified = true;
+
         try {
             Mail::to($order->email)->send(new OrderPlaced($order));
         } catch (Throwable $e) {
             report($e);
+
+            $customerNotified = false;
+
+            session()->push('orders_without_email', $order->id);
         }
 
         if (filled(config('shop.notification_email'))) {
             try {
                 Mail::to(config('shop.notification_email'))
-                    ->send(new NewOrderNotification($order));
+                    ->send(new NewOrderNotification($order, $customerNotified));
             } catch (Throwable $e) {
                 report($e);
             }

@@ -75,6 +75,10 @@
             <a href="{{ route('store.terms') }}">
                 Regulamin sklepu
             </a>
+
+            <a href="{{ route('store.privacy') }}">
+                Polityka prywatności
+            </a>
         </nav>
     </div>
 </footer>

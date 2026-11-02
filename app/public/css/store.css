@@ -940,3 +940,9 @@ a {
     padding: 20px 24px;
     background: white;
 }
+
+.site-footer .footer-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}

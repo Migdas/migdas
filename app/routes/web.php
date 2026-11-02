@@ -21,9 +21,11 @@ Route::get('/sklep', [StoreController::class, 'index'])
 Route::get('/produkt/{product:slug}', [StoreController::class, 'show'])
     ->name('store.product');
 
-Route::view('/regulamin', 'store.terms', [
-    'courierCost' => CheckoutController::SHIPPING_COSTS['courier'],
-])->name('store.terms');
+Route::view('/regulamin', 'store.terms')
+    ->name('store.terms');
+
+Route::view('/polityka-prywatnosci', 'store.privacy')
+    ->name('store.privacy');
 
 
 /*

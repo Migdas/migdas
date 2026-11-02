@@ -1,2 +1,6 @@
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /koszyk
+Disallow: /zamowienie
+
+Sitemap: https://migdas.pl/sitemap.xml

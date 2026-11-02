@@ -86,6 +86,23 @@
 
             </div>
 
+            {{-- Przy obniżce: cena regularna i najniższa cena z 30 dni. --}}
+            <p
+                id="price-note"
+                class="lowest-price"
+                @unless($product->sale_price) hidden @endunless>
+
+                @if($product->sale_price)
+
+                    Cena regularna:
+                    {{ number_format($product->price, 2, ',', ' ') }} zł.
+                    Najniższa cena z 30 dni przed obniżką:
+                    {{ number_format($product->lowestPriceBeforeSale(), 2, ',', ' ') }} zł.
+
+                @endif
+
+            </p>
+
 
             @if($product->variants->count())
 
@@ -107,12 +124,22 @@
                                     ?? $product->sale_price
                                     ?? $product->price;
 
+                                $lowest = match (true) {
+                                    $variant->sale_price !== null => $variant->lowestPriceBeforeSale(),
+                                    $variant->price !== null => null,
+                                    default => $product->lowestPriceBeforeSale(),
+                                };
+
+                                $regular = $variant->price ?? $product->price;
+
                             @endphp
 
                             <button
                                 type="button"
                                 class="variant-card"
                                 data-price="{{ $price }}"
+                                data-regular="{{ $regular }}"
+                                data-lowest="{{ $lowest }}"
                                 data-stock="{{ $variant->stock_quantity }}"
                                 data-variant="{{ $variant->id }}">
 
@@ -238,6 +265,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const price =
         document.getElementById('selected-price');
 
+    const priceNote =
+        document.getElementById('price-note');
+
+    const formatPrice = value =>
+        parseFloat(value).toLocaleString(
+            'pl-PL',
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        ) + ' zł';
+
     const availability =
         document.getElementById('availability');
 
@@ -258,21 +297,18 @@ document.addEventListener('DOMContentLoaded', () => {
             button.classList.add('selected');
 
 
-            const variantPrice =
-                parseFloat(button.dataset.price);
-
             const stock =
                 parseInt(button.dataset.stock);
 
 
             price.textContent =
-                variantPrice.toLocaleString(
-                    'pl-PL',
-                    {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    }
-                ) + ' zł';
+                formatPrice(button.dataset.price);
+
+            priceNote.hidden = !button.dataset.lowest;
+
+            priceNote.textContent = button.dataset.lowest
+                ? `Cena regularna: ${formatPrice(button.dataset.regular)}. Najniższa cena z 30 dni przed obniżką: ${formatPrice(button.dataset.lowest)}.`
+                : '';
 
 
             // Terminy wysyłki zgodne z § 5 regulaminu.

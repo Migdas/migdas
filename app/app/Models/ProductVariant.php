@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPriceHistory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Illuminate\Validation\ValidationException;
 
 class ProductVariant extends Model
 {
-    use HasFactory;
+    use HasFactory, HasPriceHistory;
 
     protected $fillable = [
         'product_id',
@@ -36,6 +37,11 @@ class ProductVariant extends Model
             'lead_time_days' => 'integer',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function regularPrice(): ?string
+    {
+        return $this->price ?? $this->product->price;
     }
 
     public function product(): BelongsTo

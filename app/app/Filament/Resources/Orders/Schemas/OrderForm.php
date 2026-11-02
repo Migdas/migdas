@@ -53,6 +53,27 @@ class OrderForm
                     ->columns(2),
 
 
+                Section::make('Wysyłka')
+                    ->description('Po zapisaniu statusu „Wysłane" klient dostanie e-mail z numerem przesyłki.')
+                    ->schema([
+
+                        Select::make('carrier')
+                            ->label('Przewoźnik')
+                            ->options(fn () => array_combine(
+                                config('shop.carriers'),
+                                config('shop.carriers')
+                            ))
+                            ->requiredIf('status', 'shipped'),
+
+                        TextInput::make('tracking_number')
+                            ->label('Numer przesyłki')
+                            ->maxLength(255)
+                            ->requiredIf('status', 'shipped'),
+
+                    ])
+                    ->columns(2),
+
+
                 Section::make('Klient')
                     ->schema([
 

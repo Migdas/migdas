@@ -216,7 +216,8 @@
                 </a>
 
                 <small>
-                    Dostawę wybierzesz w kolejnym kroku.
+                    Do zamówienia doliczymy koszt dostawy:
+                    {{ number_format(\App\Http\Controllers\CheckoutController::SHIPPING_COSTS['courier'], 2, ',', ' ') }} zł.
                 </small>
 
             </aside>

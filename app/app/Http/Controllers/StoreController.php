@@ -21,7 +21,7 @@ class StoreController extends Controller
 
         $products = Product::query()
             ->where('is_active', true)
-            ->with('category')
+            ->with(['category', 'priceHistory'])
             ->when(
                 $category !== '',
                 fn ($query) => $query->whereHas(
@@ -65,13 +65,26 @@ class StoreController extends Controller
 
         $product->load([
             'category',
+            'priceHistory',
             'variants' => fn ($query) =>
                 $query
                     ->where('is_active', true)
-                    ->with(['material', 'color'])
+                    ->with(['material', 'color', 'priceHistory'])
                     ->orderBy('sort_order'),
         ]);
 
         return view('store.show', compact('product'));
+    }
+
+    public function sitemap()
+    {
+        $products = Product::query()
+            ->where('is_active', true)
+            ->orderBy('id')
+            ->get();
+
+        return response()
+            ->view('store.sitemap', compact('products'))
+            ->header('Content-Type', 'application/xml');
     }
 }

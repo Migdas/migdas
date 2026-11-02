@@ -22,6 +22,9 @@ class Order extends Model
         'city',
         'shipping_method',
         'shipping_cost',
+        'carrier',
+        'tracking_number',
+        'shipped_at',
         'products_total',
         'total',
         'customer_note',
@@ -33,6 +36,7 @@ class Order extends Model
             'shipping_cost' => 'decimal:2',
             'products_total' => 'decimal:2',
             'total' => 'decimal:2',
+            'shipped_at' => 'datetime',
         ];
     }
 

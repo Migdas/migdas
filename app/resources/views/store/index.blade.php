@@ -168,6 +168,11 @@
                                             {{ number_format($product->sale_price, 2, ',', ' ') }} zł
                                         </strong>
 
+                                        <small class="lowest-price">
+                                            Najniższa cena z 30 dni przed obniżką:
+                                            {{ number_format($product->lowestPriceBeforeSale(), 2, ',', ' ') }} zł
+                                        </small>
+
                                     @else
 
                                         <strong>

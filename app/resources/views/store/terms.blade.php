@@ -13,6 +13,8 @@
     );
 
     $address = $seller['address'] ?: $todo('adres sprzedawcy do korespondencji i zwrotów');
+
+    $carriers = config('shop.carriers');
 @endphp
 
 @section('content')
@@ -35,8 +37,11 @@
             Sklep internetowy Migdas, dostępny pod adresem
             <a href="{{ url('/') }}">{{ preg_replace('#^https?://#', '', url('/')) }}</a>
             (dalej: „Sklep”), prowadzi {{ $seller['name'] }},
-            {{ $address }}@if($seller['nip']), NIP {{ $seller['nip'] }}@else,
-            {{ $todo('NIP i REGON albo informacja o prowadzeniu działalności nierejestrowanej') }}@endif
+            {{ $address }}@if($seller['nip']), NIP {{ $seller['nip'] }}@endif
+            @if($seller['unregistered'])
+                – prowadzący działalność nierejestrowaną, o której mowa w art. 5
+                ust. 1 ustawy z dnia 6 marca 2018 r. – Prawo przedsiębiorców
+            @endif
             (dalej: „Sprzedawca”).
         </li>
         <li>
@@ -155,8 +160,14 @@
             upływie odstąpić od Umowy.
         </li>
         <li>
-            Sprzedawca może wystawić paragon albo fakturę.
-            {{ $todo('jaki dowód zakupu wydaje sprzedawca (paragon, faktura, rachunek) i jak Klient może poprosić o fakturę') }}
+            @if($seller['unregistered'])
+                Sprzedawca nie jest czynnym podatnikiem VAT. Na żądanie Klienta,
+                zgłoszone e-mailem, Sprzedawca wystawia rachunek potwierdzający
+                zakup.
+            @else
+                Sprzedawca wystawia dowód zakupu: paragon albo, na żądanie Klienta,
+                fakturę.
+            @endif
         </li>
     </ol>
 
@@ -165,13 +176,15 @@
 
     <ol>
         <li>
-            Towary są dostarczane wyłącznie przesyłką kurierską na adres
-            w Polsce podany w zamówieniu. Sklep nie prowadzi odbioru osobistego.
+            Towary są dostarczane wyłącznie przesyłką na adres w Polsce
+            podany w zamówieniu. Sklep nie prowadzi odbioru osobistego.
         </li>
         <li>
-            Koszt dostawy kurierskiej wynosi
+            Koszt dostawy wynosi
             {{ number_format($courierCost, 2, ',', ' ') }} zł.
-            Przesyłki realizuje {{ $todo('nazwa firmy kurierskiej') }}.
+            Przesyłki doręcza jeden z przewoźników: {{ implode(', ', $carriers) }}.
+            Przewoźnika wybiera Sprzedawca, biorąc pod uwagę rozmiar paczki
+            i adres dostawy.
         </li>
         <li>
             Zamówienie jest przekazywane do realizacji po zaksięgowaniu wpłaty.
@@ -179,14 +192,16 @@
         <li>
             Towary dostępne w magazynie są wysyłane w ciągu
             {{ $todo('liczba dni roboczych') }} dni roboczych od zaksięgowania wpłaty.
-            Towary wykonywane na zamówienie (drukowane po złożeniu zamówienia)
-            są wysyłane w ciągu {{ $todo('liczba dni roboczych') }} dni roboczych
-            od zaksięgowania wpłaty. Do czasu realizacji należy doliczyć czas
-            doręczenia przez kuriera, zwykle 1–2 dni robocze.
+            Większość Towarów jest drukowana dopiero po złożeniu zamówienia;
+            takie Towary są wysyłane w ciągu {{ $todo('liczba dni roboczych') }}
+            dni roboczych od zaksięgowania wpłaty. Do czasu realizacji należy
+            doliczyć czas doręczenia przez przewoźnika, zwykle 1–2 dni robocze.
         </li>
         <li>
             Klient powinien w miarę możliwości sprawdzić przesyłkę przy odbiorze
-            w obecności kuriera i w razie uszkodzenia spisać protokół szkody.
+            i w razie uszkodzenia spisać protokół szkody z przewoźnikiem
+            (w przypadku paczkomatu lub punktu odbioru – zgłosić szkodę
+            przewoźnikowi).
             Nie jest to warunkiem skorzystania z uprawnień z tytułu reklamacji.
         </li>
     </ol>
@@ -206,6 +221,21 @@
             Towar należy używać zgodnie z opisem, w szczególności z uwzględnieniem
             podanej odporności materiału na temperaturę i obciążenia.
         </li>
+        <li>
+            Towar wykonywany na zamówienie z wariantów dostępnych w Sklepie
+            (materiał, kolor, rozmiar) jest zwykłym Towarem w rozumieniu
+            Regulaminu. Fakt, że jest drukowany po złożeniu zamówienia,
+            nie ogranicza praw Konsumenta.
+        </li>
+        <li>
+            Wykonanie Towaru personalizowanego (z napisem, według wymiarów
+            lub projektu dostarczonego przez Klienta) Sprzedawca uzgadnia
+            z Klientem indywidualnie, e-mailem, przed złożeniem zamówienia.
+            W uzgodnieniu Sprzedawca informuje Klienta, że prawo odstąpienia
+            od Umowy nie przysługuje (§ 7 ust. 6). Klient oświadcza, że ma
+            prawo do korzystania z dostarczonego projektu, a Sprzedawca może
+            odmówić wykonania projektu naruszającego prawo lub prawa osób trzecich.
+        </li>
     </ol>
 
 
@@ -217,6 +247,8 @@
             14 dni od dnia, w którym wszedł w posiadanie Towaru (lub w którym
             weszła w jego posiadanie wskazana przez niego osoba inna niż przewoźnik).
             Do zachowania terminu wystarczy wysłanie oświadczenia przed jego upływem.
+            Prawo to przysługuje także wtedy, gdy Towar z oferty Sklepu został
+            wydrukowany po złożeniu zamówienia.
         </li>
         <li>
             Oświadczenie o odstąpieniu można złożyć e-mailem na adres
@@ -249,9 +281,11 @@
             Prawo odstąpienia nie przysługuje w odniesieniu do Towaru
             nieprefabrykowanego, wyprodukowanego według specyfikacji Konsumenta
             lub służącego zaspokojeniu jego zindywidualizowanych potrzeb
-            (np. produktu z personalizowanym napisem lub wykonanego według
-            projektu przesłanego przez Konsumenta). Wybór materiału lub koloru
-            spośród wariantów dostępnych w Sklepie nie wyłącza prawa odstąpienia.
+            (art. 38 ust. 1 pkt 3 ustawy o prawach konsumenta), np. produktu
+            z personalizowanym napisem, wykonanego według wymiarów podanych
+            przez Konsumenta lub według przesłanego przez niego projektu.
+            Wybór materiału, koloru lub rozmiaru spośród wariantów dostępnych
+            w Sklepie nie wyłącza prawa odstąpienia.
         </li>
     </ol>
 

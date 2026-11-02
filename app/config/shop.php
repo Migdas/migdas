@@ -39,10 +39,15 @@ return [
 
     'seller' => [
         'name' => env('SHOP_SELLER_NAME', 'Michał Migdalski'),
-        'address' => env('SHOP_SELLER_ADDRESS'),
+        'address' => env('SHOP_SELLER_ADDRESS', 'ul. Słowackiego 121, 87-100 Aleksandrów Kujawski'),
         'nip' => env('SHOP_SELLER_NIP'),
+
+        // Działalność nierejestrowana (art. 5 ust. 1 Prawa przedsiębiorców).
+        'unregistered' => (bool) env('SHOP_SELLER_UNREGISTERED', true),
         'email' => env('SHOP_SELLER_EMAIL', 'sklep@migdas.pl'),
         'phone' => env('SHOP_SELLER_PHONE', '571 531 175'),
     ],
+
+    'carriers' => ['Orlen Paczka', 'DHL', 'InPost'],
 
 ];

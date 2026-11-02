@@ -73,11 +73,22 @@
 
         <p class="footer-contact">
             Sprzedawca: {{ config('shop.seller.name') }}<br>
+            {{ config('shop.seller.address') }}<br>
             E-mail:
             <a href="mailto:{{ config('shop.seller.email') }}">{{ config('shop.seller.email') }}</a><br>
             Telefon:
             <a href="tel:+48{{ str_replace(' ', '', config('shop.seller.phone')) }}">{{ config('shop.seller.phone') }}</a>
         </p>
+
+        <nav class="footer-nav">
+            <a href="{{ route('store.terms') }}">
+                Regulamin sklepu
+            </a>
+
+            <a href="{{ route('store.privacy') }}">
+                Polityka prywatności
+            </a>
+        </nav>
     </div>
 </footer>
 

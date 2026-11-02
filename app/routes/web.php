@@ -21,6 +21,12 @@ Route::get('/sklep', [StoreController::class, 'index'])
 Route::get('/produkt/{product:slug}', [StoreController::class, 'show'])
     ->name('store.product');
 
+Route::view('/regulamin', 'store.terms')
+    ->name('store.terms');
+
+Route::view('/polityka-prywatnosci', 'store.privacy')
+    ->name('store.privacy');
+
 
 /*
 |--------------------------------------------------------------------------

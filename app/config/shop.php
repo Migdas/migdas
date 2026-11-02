@@ -4,21 +4,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Dane sprzedawcy
-    |--------------------------------------------------------------------------
-    |
-    | Pokazywane w stopce strony.
-    |
-    */
-
-    'seller' => [
-        'name' => 'Michał Migdalski',
-        'email' => 'sklep@migdas.pl',
-        'phone' => '571 531 175',
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Powiadomienia o zamówieniach
     |--------------------------------------------------------------------------
     |
@@ -41,5 +26,28 @@ return [
     'bank_account' => env('SHOP_BANK_ACCOUNT'),
 
     'bank_recipient' => env('SHOP_BANK_RECIPIENT'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Dane sprzedawcy
+    |--------------------------------------------------------------------------
+    |
+    | Pokazywane w stopce, regulaminie i polityce prywatności. Puste pola
+    | są w regulaminie oznaczone jako wymagające uzupełnienia.
+    |
+    */
+
+    'seller' => [
+        'name' => env('SHOP_SELLER_NAME', 'Michał Migdalski'),
+        'address' => env('SHOP_SELLER_ADDRESS', 'ul. Słowackiego 121, 87-100 Aleksandrów Kujawski'),
+        'nip' => env('SHOP_SELLER_NIP'),
+
+        // Działalność nierejestrowana (art. 5 ust. 1 Prawa przedsiębiorców).
+        'unregistered' => (bool) env('SHOP_SELLER_UNREGISTERED', true),
+        'email' => env('SHOP_SELLER_EMAIL', 'sklep@migdas.pl'),
+        'phone' => env('SHOP_SELLER_PHONE', '571 531 175'),
+    ],
+
+    'carriers' => ['Orlen Paczka', 'DHL', 'InPost'],
 
 ];

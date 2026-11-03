@@ -75,11 +75,8 @@ class OrdersTable
 
                 TextColumn::make('shipping_method')
                     ->label('Dostawa')
-                    ->formatStateUsing(fn (string $state) => match ($state) {
-                        'courier' => 'Kurier',
-                        'pickup' => 'Odbiór osobisty',
-                        default => $state,
-                    }),
+                    ->formatStateUsing(fn ($record) => $record->shippingLabel())
+                    ->description(fn ($record) => $record->pickup_point),
 
                 TextColumn::make('total')
                     ->label('Razem')

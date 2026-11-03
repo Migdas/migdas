@@ -131,7 +131,7 @@
 
                 <span>
                     Dostawa:
-                    {{ $order->shipping_method === 'pickup' ? 'odbiór osobisty' : 'kurier' }}
+                    {{ $order->shippingLabel() }}
                 </span>
 
                 <strong>
@@ -150,7 +150,14 @@
 
             </div>
 
-            @if($order->shipping_method === 'courier')
+            @if($order->pickup_point)
+
+                <p class="order-address">
+                    <strong>Punkt odbioru</strong><br>
+                    {{ $order->shippingLabel() }}: {{ $order->pickup_point }}
+                </p>
+
+            @elseif($order->isDeliveredToAddress())
 
                 <p class="order-address">
                     <strong>Adres dostawy</strong><br>

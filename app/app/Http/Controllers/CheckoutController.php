@@ -6,18 +6,16 @@ use App\Mail\NewOrderNotification;
 use App\Mail\OrderPlaced;
 use App\Models\Order;
 use App\Models\ProductVariant;
+use App\Models\ShippingMethod;
+use App\Support\ParcelSize;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 use Throwable;
 
 class CheckoutController extends Controller
 {
-    public const SHIPPING_COSTS = [
-        'courier' => 16.99,
-        'pickup' => 0.00,
-    ];
-
     private function cartItems()
     {
         $cart = session()->get('cart', []);
@@ -67,15 +65,58 @@ class CheckoutController extends Controller
 
         $productsTotal = $items->sum('total');
 
+        $parcelSize = $this->parcelSize($items);
+
         return view('checkout.index', [
             'items' => $items,
             'productsTotal' => $productsTotal,
-            'shippingCosts' => self::SHIPPING_COSTS,
+            'parcelSize' => $parcelSize,
+            'shippingMethods' => $this->shippingMethodsFor($parcelSize),
         ]);
+    }
+
+    /**
+     * Gabaryt paczki dla koszyka = gabaryt największego produktu.
+     */
+    private function parcelSize($items): string
+    {
+        return ParcelSize::largest(
+            $items->map(fn ($item) => $item['variant']->product->parcel_size)
+        );
+    }
+
+    /**
+     * Aktywne metody dostawy, które obsługują dany gabaryt.
+     */
+    private function shippingMethodsFor(string $parcelSize)
+    {
+        return ShippingMethod::query()
+            ->available()
+            ->get()
+            ->filter(fn ($method) => $method->priceFor($parcelSize) !== null)
+            ->values();
     }
 
     public function store(Request $request)
     {
+        $items = $this->cartItems();
+
+        // Metody dostawy i ceny (wg gabarytu paczki) są ustawiane w panelu.
+        $parcelSize = $this->parcelSize($items);
+
+        $shippingMethod = $this->shippingMethodsFor($parcelSize)
+            ->firstWhere('code', (string) $request->input('shipping_method'));
+
+        // Adres jest wymagany przy dostawie kurierem,
+        // kod punktu przy paczkomacie / punkcie odbioru.
+        $needsAddress = Rule::requiredIf(
+            fn () => $shippingMethod && ! $shippingMethod->requires_point
+        );
+
+        $needsPoint = Rule::requiredIf(
+            fn () => $shippingMethod && $shippingMethod->requires_point
+        );
+
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
@@ -83,39 +124,23 @@ class CheckoutController extends Controller
             'email' => ['required', 'email', 'max:255'],
             'phone' => ['required', 'string', 'max:30'],
 
-            // Adres jest wymagany tylko przy dostawie kurierem.
-            'street' => [
-                'required_if:shipping_method,courier',
-                'nullable',
-                'string',
-                'max:255',
-            ],
-            'building_number' => [
-                'required_if:shipping_method,courier',
-                'nullable',
-                'string',
-                'max:30',
-            ],
+            'street' => [$needsAddress, 'nullable', 'string', 'max:255'],
+            'building_number' => [$needsAddress, 'nullable', 'string', 'max:30'],
             'apartment_number' => ['nullable', 'string', 'max:30'],
-
-            'postal_code' => [
-                'required_if:shipping_method,courier',
-                'nullable',
-                'regex:/^\d{2}-\d{3}$/',
-            ],
-
-            'city' => [
-                'required_if:shipping_method,courier',
-                'nullable',
-                'string',
-                'max:150',
-            ],
+            'postal_code' => [$needsAddress, 'nullable', 'regex:/^\d{2}-\d{3}$/'],
+            'city' => [$needsAddress, 'nullable', 'string', 'max:150'],
 
             'shipping_method' => [
                 'required',
-                // Odbiór osobisty jest obecnie wyłączony.
-                'in:courier',
+                'string',
+                function ($attribute, $value, $fail) use ($shippingMethod) {
+                    if (! $shippingMethod) {
+                        $fail('Wybierz sposób dostawy.');
+                    }
+                },
             ],
+
+            'pickup_point' => [$needsPoint, 'nullable', 'string', 'max:100'],
 
             'customer_note' => [
                 'nullable',
@@ -124,9 +149,9 @@ class CheckoutController extends Controller
             ],
 
             'terms' => ['accepted'],
+        ], [
+            'pickup_point.required' => 'Podaj kod paczkomatu lub punktu odbioru.',
         ]);
-
-        $items = $this->cartItems();
 
         if ($items->isEmpty()) {
             return redirect()->route('cart.index');
@@ -144,22 +169,28 @@ class CheckoutController extends Controller
 
         $productsTotal = (float) $items->sum('total');
 
-        $shippingCost = self::SHIPPING_COSTS[$validated['shipping_method']];
+        $shippingCost = $shippingMethod->priceFor($parcelSize);
 
-        // Kolumny adresu w tabeli orders nie przyjmują NULL.
-        if ($validated['shipping_method'] === 'pickup') {
+        if ($shippingMethod->requires_point) {
+            $validated['pickup_point'] = mb_strtoupper(trim($validated['pickup_point']));
+
+            // Kolumny adresu w tabeli orders nie przyjmują NULL.
             $validated['street'] = '';
             $validated['building_number'] = '';
             $validated['apartment_number'] = null;
             $validated['postal_code'] = '';
             $validated['city'] = '';
+        } else {
+            $validated['pickup_point'] = null;
         }
 
         $order = DB::transaction(function () use (
             $validated,
             $items,
             $productsTotal,
-            $shippingCost
+            $shippingMethod,
+            $shippingCost,
+            $parcelSize
         ) {
             $order = Order::create([
                 'number' => $this->generateOrderNumber(),
@@ -181,10 +212,11 @@ class CheckoutController extends Controller
                 'postal_code' => $validated['postal_code'],
                 'city' => $validated['city'],
 
-                'shipping_method' =>
-                    $validated['shipping_method'],
-
+                'shipping_method' => $shippingMethod->code,
+                'shipping_name' => $shippingMethod->name,
                 'shipping_cost' => $shippingCost,
+                'pickup_point' => $validated['pickup_point'],
+                'parcel_size' => $parcelSize,
 
                 'products_total' => $productsTotal,
 

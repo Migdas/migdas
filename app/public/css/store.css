@@ -684,6 +684,7 @@ a {
 }
 
 .form-grid input,
+.pickup-point input,
 .checkout-box textarea {
     width: 100%;
     padding: 13px;
@@ -711,6 +712,47 @@ a {
 
 .shipping-option small {
     color: #666;
+}
+
+.shipping-option-name {
+    display: flex !important;
+    flex-direction: column;
+    justify-content: flex-start !important;
+    gap: 2px;
+}
+
+.shipping-option-price {
+    white-space: nowrap;
+    align-self: center;
+}
+
+.shipping-option:has(input:checked) {
+    border-color: #222;
+}
+
+.parcel-size-note {
+    margin: 0 0 6px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.pickup-point {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.pickup-point[hidden] {
+    display: none;
+}
+
+.pickup-point small {
+    color: #666;
+}
+
+.pickup-point small a {
+    text-decoration: underline;
 }
 
 .terms-row {
@@ -954,4 +996,22 @@ a {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
+}
+
+.product-specs {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+}
+
+.product-specs li {
+    display: flex;
+    gap: 8px;
+}
+
+.product-specs span {
+    color: #666;
 }

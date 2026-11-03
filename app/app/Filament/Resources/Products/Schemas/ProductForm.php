@@ -9,14 +9,28 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use App\Support\ParcelSize;
 use Illuminate\Support\Str;
 
 class ProductForm
 {
     public static function configure(Schema $schema): Schema
     {
+        $suggestParcel = function (Get $get, Set $set) {
+            $size = ParcelSize::fromDimensions(
+                (float) $get('length_cm'),
+                (float) $get('width_cm'),
+                (float) $get('height_cm'),
+            );
+
+            if ($size) {
+                $set('parcel_size', $size);
+            }
+        };
+
         return $schema
             ->components([
 
@@ -85,6 +99,44 @@ class ProductForm
                             ->minValue(0),
                     ])
                     ->columns(2),
+
+                Section::make('Wymiary i wysyłka')
+                    ->description('Wymiary gotowego wydruku są widoczne na stronie produktu. Gabaryt paczki decyduje o cenie wysyłki.')
+                    ->schema([
+                        TextInput::make('length_cm')
+                            ->label('Długość')
+                            ->numeric()
+                            ->step(0.1)
+                            ->minValue(0)
+                            ->suffix('cm')
+                            ->live(onBlur: true)
+                            ->afterStateUpdated($suggestParcel),
+                        TextInput::make('width_cm')
+                            ->label('Szerokość')
+                            ->numeric()
+                            ->step(0.1)
+                            ->minValue(0)
+                            ->suffix('cm')
+                            ->live(onBlur: true)
+                            ->afterStateUpdated($suggestParcel),
+                        TextInput::make('height_cm')
+                            ->label('Wysokość')
+                            ->numeric()
+                            ->step(0.1)
+                            ->minValue(0)
+                            ->suffix('cm')
+                            ->live(onBlur: true)
+                            ->afterStateUpdated($suggestParcel),
+
+                        Select::make('parcel_size')
+                            ->label('Gabaryt paczki')
+                            ->options(ParcelSize::LABELS)
+                            ->default(ParcelSize::A)
+                            ->required()
+                            ->selectablePlaceholder(false)
+                            ->helperText('Podpowiadany z wymiarów (z zapasem 2 cm na opakowanie) - możesz zmienić.'),
+                    ])
+                    ->columns(4),
 
                 Section::make('Opis produktu')
                     ->schema([

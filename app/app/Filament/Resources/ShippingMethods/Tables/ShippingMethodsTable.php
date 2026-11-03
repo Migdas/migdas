@@ -20,9 +20,24 @@ class ShippingMethodsTable
                     ->weight('bold'),
 
                 TextColumn::make('price')
-                    ->label('Cena')
+                    ->label('A')
                     ->money('PLN', locale: 'pl')
                     ->sortable(),
+
+                TextColumn::make('price_b')
+                    ->label('B')
+                    ->money('PLN', locale: 'pl')
+                    ->placeholder('—'),
+
+                TextColumn::make('price_c')
+                    ->label('C')
+                    ->money('PLN', locale: 'pl')
+                    ->placeholder('—'),
+
+                TextColumn::make('price_large')
+                    ->label('Duża')
+                    ->money('PLN', locale: 'pl')
+                    ->placeholder('—'),
 
                 IconColumn::make('requires_point')
                     ->label('Do punktu')

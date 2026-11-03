@@ -730,6 +730,12 @@ a {
     border-color: #222;
 }
 
+.parcel-size-note {
+    margin: 0 0 6px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
 .pickup-point {
     margin-top: 16px;
     display: flex;
@@ -990,4 +996,22 @@ a {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
+}
+
+.product-specs {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+}
+
+.product-specs li {
+    display: flex;
+    gap: 8px;
+}
+
+.product-specs span {
+    color: #666;
 }

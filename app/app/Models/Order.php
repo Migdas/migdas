@@ -24,6 +24,7 @@ class Order extends Model
         'shipping_name',
         'shipping_cost',
         'pickup_point',
+        'parcel_size',
         'products_total',
         'total',
         'customer_note',

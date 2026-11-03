@@ -68,6 +68,26 @@
             @endif
 
 
+            @if($product->dimensionsLabel() || $product->weight_grams)
+
+                <ul class="product-specs">
+                    @if($product->dimensionsLabel())
+                        <li>
+                            <span>Wymiary</span>
+                            <strong>{{ $product->dimensionsLabel() }}</strong>
+                        </li>
+                    @endif
+                    @if($product->weight_grams)
+                        <li>
+                            <span>Waga</span>
+                            <strong>{{ $product->weight_grams }} g</strong>
+                        </li>
+                    @endif
+                </ul>
+
+            @endif
+
+
             <div class="detail-price">
 
                 <span id="selected-price">

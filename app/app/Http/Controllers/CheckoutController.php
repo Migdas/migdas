@@ -7,6 +7,7 @@ use App\Mail\OrderPlaced;
 use App\Models\Order;
 use App\Models\ProductVariant;
 use App\Models\ShippingMethod;
+use App\Support\ParcelSize;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -64,20 +65,47 @@ class CheckoutController extends Controller
 
         $productsTotal = $items->sum('total');
 
+        $parcelSize = $this->parcelSize($items);
+
         return view('checkout.index', [
             'items' => $items,
             'productsTotal' => $productsTotal,
-            'shippingMethods' => ShippingMethod::query()->available()->get(),
+            'parcelSize' => $parcelSize,
+            'shippingMethods' => $this->shippingMethodsFor($parcelSize),
         ]);
+    }
+
+    /**
+     * Gabaryt paczki dla koszyka = gabaryt największego produktu.
+     */
+    private function parcelSize($items): string
+    {
+        return ParcelSize::largest(
+            $items->map(fn ($item) => $item['variant']->product->parcel_size)
+        );
+    }
+
+    /**
+     * Aktywne metody dostawy, które obsługują dany gabaryt.
+     */
+    private function shippingMethodsFor(string $parcelSize)
+    {
+        return ShippingMethod::query()
+            ->available()
+            ->get()
+            ->filter(fn ($method) => $method->priceFor($parcelSize) !== null)
+            ->values();
     }
 
     public function store(Request $request)
     {
-        // Metody dostawy i ceny są ustawiane w panelu (Metody dostawy).
-        $shippingMethod = ShippingMethod::query()
-            ->available()
-            ->where('code', (string) $request->input('shipping_method'))
-            ->first();
+        $items = $this->cartItems();
+
+        // Metody dostawy i ceny (wg gabarytu paczki) są ustawiane w panelu.
+        $parcelSize = $this->parcelSize($items);
+
+        $shippingMethod = $this->shippingMethodsFor($parcelSize)
+            ->firstWhere('code', (string) $request->input('shipping_method'));
 
         // Adres jest wymagany przy dostawie kurierem,
         // kod punktu przy paczkomacie / punkcie odbioru.
@@ -125,8 +153,6 @@ class CheckoutController extends Controller
             'pickup_point.required' => 'Podaj kod paczkomatu lub punktu odbioru.',
         ]);
 
-        $items = $this->cartItems();
-
         if ($items->isEmpty()) {
             return redirect()->route('cart.index');
         }
@@ -143,7 +169,7 @@ class CheckoutController extends Controller
 
         $productsTotal = (float) $items->sum('total');
 
-        $shippingCost = (float) $shippingMethod->price;
+        $shippingCost = $shippingMethod->priceFor($parcelSize);
 
         if ($shippingMethod->requires_point) {
             $validated['pickup_point'] = mb_strtoupper(trim($validated['pickup_point']));
@@ -163,7 +189,8 @@ class CheckoutController extends Controller
             $items,
             $productsTotal,
             $shippingMethod,
-            $shippingCost
+            $shippingCost,
+            $parcelSize
         ) {
             $order = Order::create([
                 'number' => $this->generateOrderNumber(),
@@ -189,6 +216,7 @@ class CheckoutController extends Controller
                 'shipping_name' => $shippingMethod->name,
                 'shipping_cost' => $shippingCost,
                 'pickup_point' => $validated['pickup_point'],
+                'parcel_size' => $parcelSize,
 
                 'products_total' => $productsTotal,
 

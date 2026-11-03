@@ -148,6 +148,14 @@
 
                 <h2>Dostawa</h2>
 
+                <p class="parcel-size-note">
+                    Paczka: {{ \App\Support\ParcelSize::SHORT_LABELS[$parcelSize] }}
+                    (wg największego produktu w koszyku).
+                    @if($parcelSize === \App\Support\ParcelSize::LARGE)
+                        Ta paczka nie zmieści się do paczkomatu - dostępna jest tylko wysyłka kurierem.
+                    @endif
+                </p>
+
                 @php
                     $selectedMethod =
                         $shippingMethods->firstWhere('code', old('shipping_method'))
@@ -162,7 +170,7 @@
                             type="radio"
                             name="shipping_method"
                             value="{{ $method->code }}"
-                            data-cost="{{ $method->price }}"
+                            data-cost="{{ $method->priceFor($parcelSize) }}"
                             data-requires-point="{{ $method->requires_point ? '1' : '0' }}"
                             data-map-url="{{ $method->point_map_url }}"
                             @checked($selectedMethod?->is($method))
@@ -176,7 +184,7 @@
                                 @endif
                             </span>
                             <strong class="shipping-option-price">
-                                {{ number_format($method->price, 2, ',', ' ') }} zł
+                                {{ number_format($method->priceFor($parcelSize), 2, ',', ' ') }} zł
                             </strong>
                         </span>
 
@@ -305,7 +313,7 @@
             </div>
 
             @php
-                $selectedShippingCost = (float) ($selectedMethod?->price ?? 0);
+                $selectedShippingCost = (float) ($selectedMethod?->priceFor($parcelSize) ?? 0);
             @endphp
 
             <div class="summary-row">

@@ -174,11 +174,17 @@
         dostawy i ich koszt:
         <ul>
             @foreach(\App\Models\ShippingMethod::query()->available()->get() as $shippingMethod)
-                <li>{{ $shippingMethod->name }} - {{ number_format($shippingMethod->price, 2, ',', ' ') }} zł</li>
+                <li>{{ $shippingMethod->name }}: {{ collect(\App\Support\ParcelSize::all())
+                    ->filter(fn ($size) => $shippingMethod->priceFor($size) !== null)
+                    ->map(fn ($size) => \App\Support\ParcelSize::SHORT_LABELS[$size] . ' - ' . number_format($shippingMethod->priceFor($size), 2, ',', ' ') . ' zł')
+                    ->implode(', ') }}</li>
             @endforeach
         </ul>
-        Koszt dostawy jest doliczany do ceny Towarów i podawany przed
-        złożeniem zamówienia.
+        Koszt dostawy zależy od gabarytu paczki, który wynika z wymiarów
+        największego zamówionego Towaru. Gabaryty: A - do 8 × 38 × 64 cm,
+        B - do 19 × 38 × 64 cm, C - do 41 × 38 × 64 cm; większe paczki są
+        wysyłane wyłącznie kurierem. Koszt dostawy jest doliczany do ceny
+        Towarów i podawany przed złożeniem zamówienia.
     </li>
     <li>
         Zamówienie jest przekazywane do realizacji po zaksięgowaniu wpłaty.

@@ -174,10 +174,7 @@
         dostawy i ich koszt:
         <ul>
             @foreach(\App\Models\ShippingMethod::query()->available()->get() as $shippingMethod)
-                <li>
-                    {{ $shippingMethod->name }} -
-                    {{ number_format($shippingMethod->price, 2, ',', ' ') }} zł
-                </li>
+                <li>{{ $shippingMethod->name }} - {{ number_format($shippingMethod->price, 2, ',', ' ') }} zł</li>
             @endforeach
         </ul>
         Koszt dostawy jest doliczany do ceny Towarów i podawany przed

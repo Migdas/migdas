@@ -684,6 +684,7 @@ a {
 }
 
 .form-grid input,
+.pickup-point input,
 .checkout-box textarea {
     width: 100%;
     padding: 13px;
@@ -742,6 +743,10 @@ a {
 
 .pickup-point small {
     color: #666;
+}
+
+.pickup-point small a {
+    text-decoration: underline;
 }
 
 .terms-row {

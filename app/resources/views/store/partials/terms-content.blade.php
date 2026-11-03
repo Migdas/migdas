@@ -10,7 +10,6 @@
 
     $address = $seller['address'] ?: $todo('adres sprzedawcy do korespondencji i zwrotów');
 
-    $carriers = config('shop.carriers');
 @endphp
 
 <h1>Regulamin sklepu internetowego Migdas</h1>
@@ -166,15 +165,23 @@
 
 <ol>
     <li>
-        Towary są dostarczane wyłącznie przesyłką na adres w Polsce
-        podany w zamówieniu. Sklep nie prowadzi odbioru osobistego.
+        Towary są dostarczane wyłącznie na terenie Polski: kurierem na adres
+        podany w zamówieniu albo do wybranego przez Klienta paczkomatu lub
+        punktu odbioru. Sklep nie prowadzi odbioru osobistego.
     </li>
     <li>
-        Koszt dostawy wynosi
-        {{ number_format(\App\Http\Controllers\CheckoutController::SHIPPING_COSTS['courier'], 2, ',', ' ') }} zł.
-        Przesyłki doręcza jeden z przewoźników: {{ implode(', ', $carriers) }}.
-        Przewoźnika wybiera Sprzedawca, biorąc pod uwagę rozmiar paczki
-        i adres dostawy.
+        Klient wybiera sposób dostawy w formularzu zamówienia. Dostępne sposoby
+        dostawy i ich koszt:
+        <ul>
+            @foreach(\App\Models\ShippingMethod::query()->available()->get() as $shippingMethod)
+                <li>
+                    {{ $shippingMethod->name }} -
+                    {{ number_format($shippingMethod->price, 2, ',', ' ') }} zł
+                </li>
+            @endforeach
+        </ul>
+        Koszt dostawy jest doliczany do ceny Towarów i podawany przed
+        złożeniem zamówienia.
     </li>
     <li>
         Zamówienie jest przekazywane do realizacji po zaksięgowaniu wpłaty.

@@ -99,8 +99,14 @@ class OrderForm
                             ->label('Miasto')
                             ->disabled(),
 
-                        TextInput::make('shipping_method')
+                        TextInput::make('shipping_name')
                             ->label('Metoda dostawy')
+                            ->formatStateUsing(fn ($state, $record) => $record?->shippingLabel() ?? $state)
+                            ->disabled(),
+
+                        TextInput::make('pickup_point')
+                            ->label('Paczkomat / punkt odbioru')
+                            ->placeholder('—')
                             ->disabled(),
 
                         TextInput::make('shipping_cost')

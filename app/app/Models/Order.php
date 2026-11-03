@@ -21,7 +21,9 @@ class Order extends Model
         'postal_code',
         'city',
         'shipping_method',
+        'shipping_name',
         'shipping_cost',
+        'pickup_point',
         'products_total',
         'total',
         'customer_note',
@@ -34,6 +36,23 @@ class Order extends Model
             'products_total' => 'decimal:2',
             'total' => 'decimal:2',
         ];
+    }
+
+    /**
+     * Nazwa dostawy do wyświetlenia (starsze zamówienia nie mają shipping_name).
+     */
+    public function shippingLabel(): string
+    {
+        return $this->shipping_name ?: match ($this->shipping_method) {
+            'courier' => 'Kurier',
+            'pickup' => 'Odbiór osobisty',
+            default => (string) $this->shipping_method,
+        };
+    }
+
+    public function isDeliveredToAddress(): bool
+    {
+        return blank($this->pickup_point) && $this->shipping_method !== 'pickup';
     }
 
     public function items(): HasMany

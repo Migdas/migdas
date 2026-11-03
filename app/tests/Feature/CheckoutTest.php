@@ -9,6 +9,7 @@ use App\Models\Material;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\ShippingMethod;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Mockery;
@@ -55,7 +56,7 @@ class CheckoutTest extends TestCase
             'building_number' => '1',
             'postal_code' => '00-001',
             'city' => 'Warszawa',
-            'shipping_method' => 'courier',
+            'shipping_method' => 'inpost_courier',
             'terms' => '1',
         ];
     }
@@ -154,5 +155,101 @@ class CheckoutTest extends TestCase
             ->assertSee('Wysyłka w ciągu 3 dni roboczych')
             ->assertSee('wysyłka w ciągu 7 dni roboczych')
             ->assertDontSee('około');
+    }
+
+    public function test_checkout_lists_active_shipping_methods_with_prices(): void
+    {
+        ShippingMethod::where('code', 'dhl_courier')->update(['is_active' => false]);
+
+        $this->withSession($this->cart($this->variant()))
+            ->get('/zamowienie')
+            ->assertOk()
+            ->assertSee('InPost Paczkomat 24/7')
+            ->assertSee('Orlen Paczka')
+            ->assertSee('Kurier InPost')
+            ->assertSee('16,99 zł')
+            ->assertDontSee('Kurier DHL');
+    }
+
+    public function test_shipping_cost_comes_from_the_panel_price(): void
+    {
+        Mail::fake();
+
+        ShippingMethod::where('code', 'dhl_courier')->update(['price' => 21.50]);
+
+        $this->withSession($this->cart($this->variant()))
+            ->post('/zamowienie', [
+                ...$this->orderData(),
+                'shipping_method' => 'dhl_courier',
+            ])
+            ->assertRedirect();
+
+        $order = Order::firstOrFail();
+
+        $this->assertSame('dhl_courier', $order->shipping_method);
+        $this->assertSame('Kurier DHL', $order->shipping_name);
+        $this->assertEquals(21.50, $order->shipping_cost);
+        $this->assertEquals(31.50, $order->total);
+        $this->assertNull($order->pickup_point);
+    }
+
+    public function test_locker_delivery_needs_point_code_instead_of_address(): void
+    {
+        Mail::fake();
+
+        $data = [
+            ...$this->orderData(),
+            'shipping_method' => 'inpost_locker',
+        ];
+
+        unset($data['street'], $data['building_number'], $data['postal_code'], $data['city']);
+
+        $cart = $this->cart($this->variant());
+
+        $this->withSession($cart)
+            ->post('/zamowienie', $data)
+            ->assertSessionHasErrors('pickup_point');
+
+        $this->assertSame(0, Order::count());
+
+        $this->withSession($cart)
+            ->post('/zamowienie', [...$data, 'pickup_point' => ' waw01m '])
+            ->assertRedirect();
+
+        $order = Order::firstOrFail();
+
+        $this->assertSame('WAW01M', $order->pickup_point);
+        $this->assertSame('', $order->street);
+        $this->assertEquals(13.99, $order->shipping_cost);
+        $this->assertEquals(23.99, $order->total);
+
+        (new OrderPlaced($order))
+            ->assertSeeInHtml('WAW01M')
+            ->assertSeeInHtml('InPost Paczkomat 24/7');
+    }
+
+    public function test_inactive_or_unknown_shipping_method_is_rejected(): void
+    {
+        Mail::fake();
+
+        ShippingMethod::where('code', 'dhl_courier')->update(['is_active' => false]);
+
+        $cart = $this->cart($this->variant());
+
+        foreach (['dhl_courier', 'courier', 'pickup'] as $code) {
+            $this->withSession($cart)
+                ->post('/zamowienie', [...$this->orderData(), 'shipping_method' => $code])
+                ->assertSessionHasErrors('shipping_method');
+        }
+
+        $this->assertSame(0, Order::count());
+    }
+
+    public function test_terms_list_shipping_prices(): void
+    {
+        $this->get('/regulamin')
+            ->assertOk()
+            ->assertSee('InPost Paczkomat 24/7 - 13,99 zł')
+            ->assertSee('Kurier DHL - 17,99 zł');
     }
 }

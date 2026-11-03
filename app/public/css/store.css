@@ -713,6 +713,37 @@ a {
     color: #666;
 }
 
+.shipping-option-name {
+    display: flex !important;
+    flex-direction: column;
+    justify-content: flex-start !important;
+    gap: 2px;
+}
+
+.shipping-option-price {
+    white-space: nowrap;
+    align-self: center;
+}
+
+.shipping-option:has(input:checked) {
+    border-color: #222;
+}
+
+.pickup-point {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.pickup-point[hidden] {
+    display: none;
+}
+
+.pickup-point small {
+    color: #666;
+}
+
 .terms-row {
     display: flex;
     gap: 10px;

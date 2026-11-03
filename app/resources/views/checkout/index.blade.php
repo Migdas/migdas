@@ -148,25 +148,70 @@
 
                 <h2>Dostawa</h2>
 
-                <label class="shipping-option">
+                @php
+                    $selectedMethod =
+                        $shippingMethods->firstWhere('code', old('shipping_method'))
+                        ?? $shippingMethods->first();
+                @endphp
 
-                    <input
-                        type="radio"
-                        name="shipping_method"
-                        value="courier"
-                        data-cost="{{ $shippingCosts['courier'] }}"
-                        @checked(old('shipping_method', 'courier') === 'courier')>
+                @foreach($shippingMethods as $method)
 
-                    <span>
-                        <strong>Kurier</strong>
-                        <small>{{ number_format($shippingCosts['courier'], 2, ',', ' ') }} zł</small>
-                    </span>
+                    <label class="shipping-option">
 
-                </label>
+                        <input
+                            type="radio"
+                            name="shipping_method"
+                            value="{{ $method->code }}"
+                            data-cost="{{ $method->price }}"
+                            data-requires-point="{{ $method->requires_point ? '1' : '0' }}"
+                            data-map-url="{{ $method->point_map_url }}"
+                            @checked($selectedMethod?->is($method))
+                            required>
 
-                {{-- Odbiór osobisty wyłączony - brak miejsca odbioru.
-                     Aby przywrócić: dodaj tu opcję "pickup" i dopuść ją
-                     w walidacji shipping_method w CheckoutController. --}}
+                        <span>
+                            <span class="shipping-option-name">
+                                <strong>{{ $method->name }}</strong>
+                                @if($method->description)
+                                    <small>{{ $method->description }}</small>
+                                @endif
+                            </span>
+                            <strong class="shipping-option-price">
+                                {{ number_format($method->price, 2, ',', ' ') }} zł
+                            </strong>
+                        </span>
+
+                    </label>
+
+                @endforeach
+
+
+                <div
+                    id="pickup-point"
+                    class="pickup-point"
+                    @if(! $selectedMethod?->requires_point) hidden @endif>
+
+                    <label>
+                        Kod paczkomatu / punktu odbioru
+
+                        <input
+                            name="pickup_point"
+                            placeholder="np. WAW01M"
+                            maxlength="100"
+                            value="{{ old('pickup_point') }}"
+                            @required($selectedMethod?->requires_point)>
+                    </label>
+
+                    <small>
+                        Nie znasz kodu?
+                        <a
+                            id="pickup-point-map"
+                            href="{{ $selectedMethod?->point_map_url ?: '#' }}"
+                            target="_blank"
+                            rel="noopener">Znajdź punkt na mapie</a>.
+                    </small>
+
+
+                </div>
 
             </section>
 
@@ -260,9 +305,7 @@
             </div>
 
             @php
-                $selectedShippingCost = $shippingCosts[
-                    old('shipping_method') === 'pickup' ? 'pickup' : 'courier'
-                ];
+                $selectedShippingCost = (float) ($selectedMethod?->price ?? 0);
             @endphp
 
             <div class="summary-row">
@@ -324,6 +367,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const orderTotal =
         document.getElementById('order-total');
 
+    const pickupPoint =
+        document.getElementById('pickup-point');
+
+    const pickupPointInput =
+        pickupPoint.querySelector('input[name="pickup_point"]');
+
+    const pickupPointMap =
+        document.getElementById('pickup-point-map');
+
     const format = value =>
         value.toLocaleString(
             'pl-PL',
@@ -345,8 +397,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const cost =
             parseFloat(selected.dataset.cost);
 
-        const isPickup =
-            selected.value === 'pickup';
+        const isPoint =
+            selected.dataset.requiresPoint === '1';
 
         shippingCost.textContent =
             format(cost);
@@ -354,12 +406,19 @@ document.addEventListener('DOMContentLoaded', () => {
         orderTotal.textContent =
             format(parseFloat(orderTotal.dataset.productsTotal) + cost);
 
-        // Przy odbiorze osobistym adres nie jest potrzebny.
-        address.hidden = isPickup;
+        // Przy dostawie do punktu adres nie jest potrzebny - wystarczy kod punktu.
+        address.hidden = isPoint;
 
         address
             .querySelectorAll('[data-address-required]')
-            .forEach(input => input.required = !isPickup);
+            .forEach(input => input.required = !isPoint);
+
+        pickupPoint.hidden = !isPoint;
+        pickupPointInput.required = isPoint;
+
+        if (selected.dataset.mapUrl) {
+            pickupPointMap.href = selected.dataset.mapUrl;
+        }
 
     };
 
